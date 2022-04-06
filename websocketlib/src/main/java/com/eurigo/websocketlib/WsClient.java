@@ -65,7 +65,7 @@ public class WsClient extends WebSocketClient {
     private int connectTimeout;
 
     /**
-     * 初始化时设置的标识，不设置，默认只管理一个WebSocket
+     * 初始化时设置的标识，不设置，自动使用默认WebSocket
      */
     private final String wsKey;
 

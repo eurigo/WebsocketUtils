@@ -20,7 +20,8 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep public class com.android.websocketlib.* {
-    <fields>;
-    <methods>;
-}
+-keep public class com.eurigo.websocketlib.**{*;}
+-keep public class org.slf4j.**{*;}
+-dontwarn org.slf4j.**
+-keep public class * extends com.eurigo.websocketlib.IWsListener
+-keep public class org.java_websocket.** {*;}

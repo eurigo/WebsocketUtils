@@ -80,6 +80,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ipAddress = NetworkUtils.getIPAddress(true);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        WsManager.getInstance().destroy();
+    }
+
     @SuppressLint("NonConstantResourceId")
     @Override
     public void onClick(View view) {
