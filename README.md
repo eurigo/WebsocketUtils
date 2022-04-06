@@ -81,6 +81,16 @@ dependencies {
           .start();
 ```
 
+#### 5.在onDestory销毁
+
+```java
+   @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        WsManager.getInstance().destroy();
+    }
+```
+
 ---
 
 ### WsManager API介绍
