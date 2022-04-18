@@ -236,12 +236,15 @@ public class WsClient extends WebSocketClient {
             return this;
         }
 
-        public void setWsKey(String wsKey) {
+        public Builder setWsKey(String wsKey) {
             this.wsKey = wsKey;
+            return this;
         }
 
-        public void setConnectTimeout(int connectTimeout) {
+        public Builder setConnectTimeout(int connectTimeout) {
             this.connectTimeout = connectTimeout;
+            return this;
+
         }
 
         public Builder setPingInterval(int pingInterval) {
@@ -264,8 +267,9 @@ public class WsClient extends WebSocketClient {
             return this;
         }
 
-        public void setReConnectWhenNetworkAvailable(boolean reConnectWhenNetworkAvailable) {
+        public Builder setReConnectWhenNetworkAvailable(boolean reConnectWhenNetworkAvailable) {
             this.reConnectWhenNetworkAvailable = reConnectWhenNetworkAvailable;
+            return this;
         }
 
         public WsClient build() {
