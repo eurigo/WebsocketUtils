@@ -144,6 +144,10 @@ public class WsManager {
     public void start() {
         registerNetworkChangedReceiver();
         for (WsClient ws : clientMap.values()) {
+            if (ws.isOpen()) {
+                WsLogUtil.e("请勿重复连接");
+                continue;
+            }
             ws.connect();
         }
     }
