@@ -115,8 +115,9 @@ public class WsManager {
 
     private void addClient(WsClient wsClient) {
         if (clientMap.containsKey(wsClient.getWsKey())) {
-            throw new IllegalArgumentException("已存在" + wsClient.getWsKey() + ",请勿重复初始化" +
-                    ",多个请设置WsKey");
+            WsLogUtil.e("初始化失败,已存在" + wsClient.getWsKey()
+                    + ",请勿重复初始化,多个请设置WsKey");
+            return;
         }
         clientMap.put(wsClient.getWsKey(), wsClient);
     }
