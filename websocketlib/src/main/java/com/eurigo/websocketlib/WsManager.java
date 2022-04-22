@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresPermission;
 
@@ -159,7 +158,7 @@ public class WsManager {
 
     public WsClient getWsClient(String wsKey) {
         if (!clientMap.containsKey(wsKey)) {
-            Toast.makeText(AppUtils.getInstance().getApp(), "未初始化" + wsKey, Toast.LENGTH_SHORT).show();
+            WsLogUtil.e(NO_INIT + wsKey);
             return null;
         }
         return clientMap.get(wsKey);
@@ -204,6 +203,9 @@ public class WsManager {
      * @return 默认WebSocket是否连接
      */
     public boolean isConnected() {
+        if (getDefault() == null) {
+            return false;
+        }
         return isConnected(DEFAULT_WEBSOCKET);
     }
 
@@ -212,6 +214,9 @@ public class WsManager {
      * @return WebSocket是否连接
      */
     public boolean isConnected(String wsKey) {
+        if (getWsClient(wsKey) == null) {
+            return false;
+        }
         return getWsClient(wsKey).isOpen();
     }
 
