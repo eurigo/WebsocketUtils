@@ -3,6 +3,7 @@ package com.eurigo.websocketlib;
 import static com.eurigo.websocketlib.WsManager.DEFAULT_WEBSOCKET;
 
 import com.eurigo.websocketlib.util.ThreadUtils;
+import com.eurigo.websocketlib.util.WsLogUtil;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
@@ -96,10 +97,17 @@ public class WsClient extends WebSocketClient {
      */
     private ReConnectTask task;
 
-    public ReConnectTask createTask() {
-        ThreadUtils.cancel(task);
-        this.task = new ReConnectTask(this);
+    public ReConnectTask getTask() {
         return task;
+    }
+
+    public void runReconnectTask(){
+        if (isReconnectTaskRun){
+            WsLogUtil.e(wsKey+"reconnect task has run");
+            return;
+        }
+        task = new ReConnectTask(this);
+        task.execute();
     }
 
     /**
@@ -175,8 +183,8 @@ public class WsClient extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         listener.onDisconnect(this, new DisConnectReason(code, reason, remote));
-        if (this.getReConnectCount() > 0) {
-            this.createTask().execute();
+        if (reConnectCount > 0) {
+            runReconnectTask();
         }
     }
 

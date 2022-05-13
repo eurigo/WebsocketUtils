@@ -13,6 +13,7 @@ import android.os.Build;
 import androidx.annotation.RequiresPermission;
 
 import com.eurigo.websocketlib.util.AppUtils;
+import com.eurigo.websocketlib.util.ThreadUtils;
 import com.eurigo.websocketlib.util.WsLogUtil;
 
 import java.util.HashMap;
@@ -244,6 +245,7 @@ public class WsManager {
         for (WsClient ws : clientMap.values()) {
             try {
                 ws.closeBlocking();
+                ThreadUtils.cancel(ws.getTask());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
