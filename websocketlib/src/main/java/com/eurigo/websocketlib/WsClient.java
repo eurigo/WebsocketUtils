@@ -103,8 +103,7 @@ public class WsClient extends WebSocketClient {
 
     public void runReconnectTask(){
         if (isReconnectTaskRun){
-            WsLogUtil.e(wsKey+"reconnect task has run");
-            return;
+            ThreadUtils.cancel(task);
         }
         task = new ReConnectTask(this);
         task.execute();
