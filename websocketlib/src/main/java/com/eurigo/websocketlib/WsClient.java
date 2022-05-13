@@ -102,8 +102,9 @@ public class WsClient extends WebSocketClient {
     }
 
     public void runReconnectTask(){
-        if (isReconnectTaskRun){
-            ThreadUtils.cancel(task);
+        if (isReconnectTaskRun()){
+            WsLogUtil.e(wsKey+"的重连任务已开启");
+            return;
         }
         task = new ReConnectTask(this);
         task.execute();
@@ -190,6 +191,9 @@ public class WsClient extends WebSocketClient {
     @Override
     public void onError(Exception ex) {
         listener.onError(this, ex);
+        if (reConnectCount > 0) {
+            runReconnectTask();
+        }
     }
 
     @Override
