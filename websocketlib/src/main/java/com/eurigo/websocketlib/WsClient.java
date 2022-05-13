@@ -96,11 +96,8 @@ public class WsClient extends WebSocketClient {
      */
     private ReConnectTask task;
 
-    public ReConnectTask getTask() {
-        return task;
-    }
-
     public ReConnectTask createTask() {
+        ThreadUtils.cancel(task);
         this.task = new ReConnectTask(this);
         return task;
     }
@@ -166,8 +163,8 @@ public class WsClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
+        ThreadUtils.cancel(task);
         listener.onConnected(this);
-        ThreadUtils.cancel(this.task);
     }
 
     @Override

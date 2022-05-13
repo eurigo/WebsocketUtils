@@ -22,13 +22,13 @@ public class ReConnectTask extends ThreadUtils.SimpleTask<Void> {
         this.wsClient = wsClient;
         reConnectCount = wsClient.getReConnectCount();
         reConnectInterval = wsClient.getReConnectInterval();
+        wsClient.setReconnectTaskRun(true);
     }
 
     @Override
     public Void doInBackground() throws Throwable {
         WsLogUtil.e("执行第" + count + "次重连");
-        wsClient.reconnect();
-        wsClient.setReconnectTaskRun(true);
+        wsClient.reconnectBlocking();
         // 每次执行任务，重连次数递减，直到为0不再发起重连
         reConnectCount--;
         count++;
@@ -56,6 +56,10 @@ public class ReConnectTask extends ThreadUtils.SimpleTask<Void> {
         }
         if (wsClient.isReconnectTaskRun()) {
             WsLogUtil.e("重连任务已在运行中");
+            return;
+        }
+        if (wsClient.isOpen()){
+            WsLogUtil.e("已连接成功");
             return;
         }
         ThreadUtils.executeByCachedAtFixRate(this, reConnectInterval, TimeUnit.MILLISECONDS);
