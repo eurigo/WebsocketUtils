@@ -1,4 +1,4 @@
-# Android Websocket
+# Android Websocket [![](https://jitpack.io/v/eurigo/WebsocketUtils.svg)](https://jitpack.io/#eurigo/WebsocketUtils)
 
 基于Java-websocket，在Android下的websocket。
 
@@ -25,7 +25,7 @@ allprojects {
 
 ```java
 dependencies {
-    implementation 'com.github.eurigo:WebsocketUtils:1.0'
+    implementation 'com.github.eurigo:WebsocketUtils:1.1.7'
 }
 ```
 
