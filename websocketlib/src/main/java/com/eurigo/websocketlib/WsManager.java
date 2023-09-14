@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.text.TextUtils;
 
 import androidx.annotation.RequiresPermission;
 
@@ -114,6 +115,10 @@ public class WsManager {
     }
 
     private void addClient(WsClient wsClient) {
+        if (TextUtils.equals(wsClient.getWsKey(), DEFAULT_WEBSOCKET)) {
+            clientMap.put(DEFAULT_WEBSOCKET, wsClient);
+            return;
+        }
         if (clientMap.containsKey(wsClient.getWsKey())) {
             WsLogUtil.e("初始化失败,已存在" + wsClient.getWsKey()
                     + ",请勿重复初始化,多个请设置WsKey");
@@ -146,7 +151,11 @@ public class WsManager {
         registerNetworkChangedReceiver();
         for (WsClient ws : clientMap.values()) {
             if (ws.isOpen()) {
-                WsLogUtil.e("请勿重复连接");
+                WsLogUtil.e("请勿重复连接, key = " + ws.getWsKey());
+                continue;
+            }
+            if (ws.isClosed()){
+                WsLogUtil.e("不能重复使用已关闭的WebSocket, key = " + ws.getWsKey());
                 continue;
             }
             ws.connect();
