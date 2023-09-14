@@ -25,7 +25,7 @@ allprojects {
 
 ```java
 dependencies {
-    implementation 'com.github.eurigo:WebsocketUtils:1.1.7'
+    implementation 'com.github.eurigo:WebsocketUtils:1.1.72'
 }
 ```
 
