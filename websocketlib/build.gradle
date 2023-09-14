@@ -39,6 +39,6 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.0-alpha01'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
     api 'org.java-websocket:Java-WebSocket:1.5.3'
 }
