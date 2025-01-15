@@ -16,7 +16,7 @@ afterEvaluate {
 }
 
 android {
-    namespace 'com.eurigo.websocketutils'
+    namespace 'com.eurigo.websocketutilslib'
     compileSdk 35
 
     defaultConfig {
