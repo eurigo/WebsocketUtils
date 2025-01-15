@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.text.TextUtils;
 
 import androidx.annotation.RequiresPermission;
 
@@ -40,6 +39,16 @@ public class WsManager {
 
     private NetworkChangedReceiver networkChangedReceiver;
 
+    private boolean isReconnectTaskRun = false;
+
+    public synchronized void setReconnectTaskRun(boolean reconnectTaskRun) {
+        isReconnectTaskRun = reconnectTaskRun;
+    }
+
+    public synchronized boolean isReconnectTaskRun() {
+        return isReconnectTaskRun;
+    }
+
     public WsManager() {
     }
 
@@ -59,8 +68,7 @@ public class WsManager {
         }
         ConnectivityManager mConnectivityManager = (ConnectivityManager) AppUtils.getInstance().getApp()
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo mNetworkInfo = mConnectivityManager
-                .getActiveNetworkInfo();
+        NetworkInfo mNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
         if (mNetworkInfo != null) {
             return mNetworkInfo.isAvailable();
         }
@@ -115,13 +123,9 @@ public class WsManager {
     }
 
     private void addClient(WsClient wsClient) {
-        if (TextUtils.equals(wsClient.getWsKey(), DEFAULT_WEBSOCKET)) {
-            clientMap.put(DEFAULT_WEBSOCKET, wsClient);
-            return;
-        }
+        // 移除旧的WebSocket，再重新添加
         if (clientMap.containsKey(wsClient.getWsKey())) {
-            WsLogUtil.e("初始化失败,已存在" + wsClient.getWsKey()
-                    + ",请勿重复初始化,多个请设置WsKey");
+            WsLogUtil.e("已存在相同的WebSocket，不再添加，key = " + wsClient.getWsKey());
             return;
         }
         clientMap.put(wsClient.getWsKey(), wsClient);
@@ -132,8 +136,9 @@ public class WsManager {
      *
      * @param isClose 是否关闭
      */
-    public void closeLog(boolean isClose) {
+    public WsManager closeLog(boolean isClose) {
         WsLogUtil.closeLog(isClose);
+        return this;
     }
 
     /**
@@ -149,17 +154,26 @@ public class WsManager {
      */
     public void start() {
         registerNetworkChangedReceiver();
-        for (WsClient ws : clientMap.values()) {
-            if (ws.isOpen()) {
-                WsLogUtil.e("请勿重复连接, key = " + ws.getWsKey());
-                continue;
+        try {
+            for (WsClient ws : clientMap.values()) {
+                if (ws.isOpen()) {
+                    WsLogUtil.e("请勿重复连接, key = " + ws.getWsKey());
+                    continue;
+                }
+                if (isReconnectTaskRun) {
+                    WsLogUtil.e("重连任务已开启");
+                    continue;
+                }
+                if (ws.isClosed()){
+                    ws.reconnectBlocking();
+                }else {
+                    ws.connect();
+                }
             }
-            if (ws.isClosed()){
-                WsLogUtil.e("不能重复使用已关闭的WebSocket, key = " + ws.getWsKey());
-                continue;
-            }
-            ws.connect();
+        }catch (Exception e){
+            WsLogUtil.e(e.getMessage());
         }
+
     }
 
     public WsClient getDefault() {

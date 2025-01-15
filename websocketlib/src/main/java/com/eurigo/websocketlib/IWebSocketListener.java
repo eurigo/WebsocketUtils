@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
  * Created on 2022/3/29 10:07
  * desc   :
  */
-public interface IWsListener {
+public interface IWebSocketListener {
 
     /**
      * 连接成功
@@ -25,6 +25,14 @@ public interface IWsListener {
      * @param reason 断开原因
      */
     void onDisconnect(WsClient client, DisConnectReason reason);
+
+    /**
+     * 正在关闭连接
+     *
+     * @param client   客户端
+     * @param reason   关闭原因
+     */
+    void onClosing(WsClient client, DisConnectReason reason);
 
     /**
      * 连接失败,调用后会调用onClose

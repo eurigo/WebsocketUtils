@@ -1,15 +1,13 @@
 package com.eurigo.websocketutils;
 
+import com.blankj.utilcode.util.TimeUtils;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @author Eurigo
@@ -28,10 +26,8 @@ public class LogAdapter extends BaseQuickAdapter<String, BaseViewHolder> {
     }
 
     public void addDataAndScroll(@NotNull String data, boolean isClient) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
-        String time = format.format(new Date(System.currentTimeMillis()));
         String regex = isClient ? "客户端：" : "服务端收到：";
-        addData(time + "\n" + regex + data);
+        addData(TimeUtils.getNowString() + "\n" + regex + data);
         getRecyclerView().scrollToPosition(getData().size() - 1);
     }
 }

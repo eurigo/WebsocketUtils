@@ -39,8 +39,8 @@ public class WsClient extends WebSocketClient {
         this.httpHeaders = builder.httpHeaders;
         this.pingInterval = builder.pingInterval;
         this.wsKey = builder.wsKey;
-        this.reConnectCount = builder.reConnectCount;
-        this.reConnectInterval = builder.reConnectInterval;
+        this.reconnectCount = builder.reconnectCount;
+        this.reconnectInterval = builder.reconnectInterval;
         this.reConnectWhenNetworkAvailable = builder.reConnectWhenNetworkAvailable;
         setConnectionLostTimeout(pingInterval);
     }
@@ -48,7 +48,7 @@ public class WsClient extends WebSocketClient {
     /**
      * WebSocket回调
      */
-    private IWsListener listener;
+    private IWebSocketListener listener;
 
     /**
      * 服务端地址
@@ -80,33 +80,24 @@ public class WsClient extends WebSocketClient {
     /**
      * 重连次数，默认10，大于0开启重连功能
      */
-    private final int reConnectCount;
+    private final int reconnectCount;
 
     /**
      * 自动重连间隔, 单位毫秒，默认值1000
      */
-    private final long reConnectInterval;
-
-    /**
-     * 是否正在执行重连任务
-     */
-    private boolean isReconnectTaskRun = false;
+    private final long reconnectInterval;
 
     /**
      * 重连任务
      */
-    private ReConnectTask task;
+    private ReconnectTask task;
 
-    public ReConnectTask getTask() {
+    public ReconnectTask getTask() {
         return task;
     }
 
     public void runReconnectTask(){
-        if (isReconnectTaskRun()){
-            WsLogUtil.e(wsKey+"的重连任务已开启");
-            return;
-        }
-        task = new ReConnectTask(this);
+        task = new ReconnectTask(this);
         task.execute();
     }
 
@@ -117,7 +108,7 @@ public class WsClient extends WebSocketClient {
 
     private final Map<String, String> httpHeaders;
 
-    public IWsListener getListener() {
+    public IWebSocketListener getListener() {
         return listener;
     }
 
@@ -133,12 +124,12 @@ public class WsClient extends WebSocketClient {
         return pingInterval;
     }
 
-    public int getReConnectCount() {
-        return reConnectCount;
+    public int getReconnectCount() {
+        return reconnectCount;
     }
 
-    public long getReConnectInterval() {
-        return reConnectInterval;
+    public long getReconnectInterval() {
+        return reconnectInterval;
     }
 
     public boolean isReConnectWhenNetworkAvailable() {
@@ -147,14 +138,6 @@ public class WsClient extends WebSocketClient {
 
     public Map<String, String> getHttpHeaders() {
         return httpHeaders;
-    }
-
-    public void setReconnectTaskRun(boolean reconnectTaskRun) {
-        isReconnectTaskRun = reconnectTaskRun;
-    }
-
-    public boolean isReconnectTaskRun() {
-        return isReconnectTaskRun;
     }
 
     @Override
@@ -183,17 +166,21 @@ public class WsClient extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         listener.onDisconnect(this, new DisConnectReason(code, reason, remote));
-        if (reConnectCount > 0) {
-            runReconnectTask();
+        if (WsManager.getInstance().isReconnectTaskRun()) {
+            WsLogUtil.e("重连任务执行中");
+            return;
         }
+        runReconnectTask();
     }
 
     @Override
     public void onError(Exception ex) {
         listener.onError(this, ex);
-        if (reConnectCount > 0) {
-            runReconnectTask();
+        if (WsManager.getInstance().isReconnectTaskRun()) {
+            WsLogUtil.e("重连任务执行中");
+            return;
         }
+        runReconnectTask();
     }
 
     @Override
@@ -211,7 +198,7 @@ public class WsClient extends WebSocketClient {
 
         private String serverUrl;
 
-        private IWsListener listener;
+        private IWebSocketListener listener;
 
         private String wsKey = DEFAULT_WEBSOCKET;
 
@@ -221,9 +208,9 @@ public class WsClient extends WebSocketClient {
 
         private int pingInterval = 60;
 
-        private int reConnectCount = 10;
+        private int reconnectCount = 10;
 
-        private long reConnectInterval = 1000;
+        private long reconnectInterval = 1000;
 
         private boolean reConnectWhenNetworkAvailable = true;
 
@@ -234,7 +221,7 @@ public class WsClient extends WebSocketClient {
             return this;
         }
 
-        public Builder setListener(IWsListener listener) {
+        public Builder setListener(IWebSocketListener listener) {
             this.listener = listener;
             return this;
         }
@@ -260,13 +247,13 @@ public class WsClient extends WebSocketClient {
             return this;
         }
 
-        public Builder setReConnectCount(int reConnectCount) {
-            this.reConnectCount = reConnectCount;
+        public Builder setReconnectCount(int reconnectCount) {
+            this.reconnectCount = reconnectCount;
             return this;
         }
 
-        public Builder setReConnectInterval(long reConnectInterval) {
-            this.reConnectInterval = reConnectInterval;
+        public Builder setReconnectInterval(long reconnectInterval) {
+            this.reconnectInterval = reconnectInterval;
             return this;
         }
 

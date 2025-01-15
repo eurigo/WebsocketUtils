@@ -18,21 +18,21 @@ public class WsLogUtil {
     }
 
     public static void d(String msg) {
-        if (!isClose) {
+        if (isClose) {
             return;
         }
         Log.d(TAG, "d: " + msg);
     }
 
     public static void e(String msg) {
-        if (!isClose) {
+        if (isClose) {
             return;
         }
         Log.e(TAG, "e: " + msg);
     }
 
     public static void w(String msg) {
-        if (!isClose) {
+        if (isClose) {
             return;
         }
         Log.w(TAG, "w: " + msg);

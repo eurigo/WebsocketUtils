@@ -23,5 +23,5 @@
 -keep public class com.eurigo.websocketlib.**{*;}
 -keep public class org.slf4j.**{*;}
 -dontwarn org.slf4j.**
--keep public class * extends com.eurigo.websocketlib.IWsListener
+-keep public class * extends com.eurigo.websocketlib.IWebSocketListener
 -keep public class org.java_websocket.** {*;}

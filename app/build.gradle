@@ -4,12 +4,13 @@ plugins {
 }
 
 android {
-    compileSdk 31
+    namespace 'com.eurigo.websocketutils'
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.eurigo.websocketutils"
         minSdk 21
-        targetSdk 31
+        targetSdk 35
         versionCode 1
         versionName "1.0"
     }
@@ -27,16 +28,21 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+    // 在module build.gradle android内
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {
     implementation project (':websocketlib')
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'com.google.android.material:material:1.5.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+    implementation 'androidx.core:core-ktx:1.13.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     // 工具类 https://github.com/Blankj/AndroidUtilCode/blob/master/lib/utilcode/README-CN.md
-    implementation 'com.blankj:utilcodex:1.31.0'
+    implementation 'com.blankj:utilcodex:1.31.1'
     implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.4'
 }

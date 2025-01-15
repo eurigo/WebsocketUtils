@@ -28,7 +28,7 @@ public class NetworkChangedReceiver extends BroadcastReceiver {
             }
             if (WsManager.getInstance().isNetworkAvailable()) {
                 for (WsClient ws : WsManager.getInstance().getClientMap().values()) {
-                    if (ws.isReConnectWhenNetworkAvailable()) {
+                    if (ws.isReConnectWhenNetworkAvailable() && !ws.isOpen() && !WsManager.getInstance().isReconnectTaskRun()) {
                         ws.runReconnectTask();
                     }
                 }
