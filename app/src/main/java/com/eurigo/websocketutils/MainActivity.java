@@ -52,9 +52,8 @@ public class MainActivity extends ComponentActivity implements View.OnClickListe
         setContentView(mBinding.getRoot());
         initView();
         ipAddress = NetworkUtils.getIpAddressByWifi();
-//        WsManager.getInstance().startWsServer(PORT, this);
-//        connectWebSocket("ws://".concat(ipAddress).concat(":" + PORT));
-        WsManager.getInstance().registerNetworkChangedCallback();
+        WsManager.getInstance().startWsServer(PORT, this);
+        connectWebSocket("ws://".concat(ipAddress).concat(":" + PORT));
     }
 
     private void initView() {
