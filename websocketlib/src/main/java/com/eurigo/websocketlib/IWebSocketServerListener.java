@@ -2,6 +2,7 @@ package com.eurigo.websocketlib;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
 
 /**
  * @author eurigo
@@ -36,5 +37,5 @@ public interface IWebSocketServerListener {
     /**
      * 已启动
      */
-    void onWsStart();
+    void onWsStart(WebSocketServer server);
 }

@@ -85,9 +85,9 @@ public class WsManager {
         return webSocketServer;
     }
 
-    public synchronized void startWsServer(int port, IWebSocketServerListener listener) {
+    public synchronized void startWsServer(InetSocketAddress address, IWebSocketServerListener listener) {
         attempt = 0;
-        webSocketServer = new WebSocketServer(new InetSocketAddress(port)) {
+        webSocketServer = new WebSocketServer(address) {
             @Override
             public void onOpen(WebSocket conn, ClientHandshake handshake) {
                 listener.onWsOpen(conn, handshake);
@@ -107,14 +107,14 @@ public class WsManager {
             public void onError(WebSocket conn, Exception ex) {
                 if (ex instanceof BindException) {
                     attempt++;
-                    WsLogUtil.e("端口被占用, 尝试端口：" + (port + attempt));
+                    WsLogUtil.e("端口被占用, 尝试端口：" + (address.getPort() + attempt));
                 }
                 listener.onWsError(conn, ex);
             }
 
             @Override
             public void onStart() {
-                listener.onWsStart();
+                listener.onWsStart(webSocketServer);
             }
         };
         webSocketServer.setReuseAddr(true);
@@ -453,6 +453,9 @@ public class WsManager {
     public void destroy() {
         // 解除广播
         unRegisterNetworkChangedCallback();
+        if (webSocketServer != null){
+            webSocketServer = null;
+        }
         // 关闭连接
         for (WsClient ws : clientMap.values()) {
             if (!ws.isFlushAndClose()) {

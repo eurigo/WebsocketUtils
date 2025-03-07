@@ -25,7 +25,9 @@ import com.eurigo.websocketutils.databinding.ActivityMainBinding;
 import org.java_websocket.WebSocket;
 import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 
 /**
@@ -52,7 +54,7 @@ public class MainActivity extends ComponentActivity implements View.OnClickListe
         setContentView(mBinding.getRoot());
         initView();
         ipAddress = NetworkUtils.getIpAddressByWifi();
-        WsManager.getInstance().startWsServer(PORT, this);
+        WsManager.getInstance().startWsServer(new InetSocketAddress(ipAddress, PORT), this);
         connectWebSocket("ws://".concat(ipAddress).concat(":" + PORT));
     }
 
@@ -119,33 +121,6 @@ public class MainActivity extends ComponentActivity implements View.OnClickListe
                 .start();
         // 启动3分钟的重连保护
         WsManager.getInstance().startGuardianTaskInterval(60*3);
-
-        WsManager.getInstance().startWsServer(8800, new IWebSocketServerListener() {
-            @Override
-            public void onWsOpen(WebSocket conn, ClientHandshake handshake) {
-
-            }
-
-            @Override
-            public void onWsClose(WebSocket conn, int code, String reason, boolean remote) {
-
-            }
-
-            @Override
-            public void onWsMessage(WebSocket conn, String message) {
-
-            }
-
-            @Override
-            public void onWsError(WebSocket conn, Exception ex) {
-
-            }
-
-            @Override
-            public void onWsStart() {
-
-            }
-        });
     }
 
     @Override
@@ -171,7 +146,7 @@ public class MainActivity extends ComponentActivity implements View.OnClickListe
     }
 
     @Override
-    public void onWsStart() {
+    public void onWsStart(WebSocketServer server) {
         LogUtils.e("服务端日志", "服务器已启动", "地址：" + ipAddress + ":" + PORT);
     }
 
@@ -210,9 +185,7 @@ public class MainActivity extends ComponentActivity implements View.OnClickListe
 
     @Override
     public void onMessage(WsClient webSocketClient, String message) {
-        runOnUiThread(() -> {
-            mAdapter.addDataAndScroll(message, true);
-        });
+        runOnUiThread(() -> mAdapter.addDataAndScroll(message, true));
     }
 
     @Override
