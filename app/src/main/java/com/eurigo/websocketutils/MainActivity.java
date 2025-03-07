@@ -2,14 +2,13 @@ package com.eurigo.websocketutils;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 
+import androidx.activity.ComponentActivity;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -18,17 +17,15 @@ import com.blankj.utilcode.util.NetworkUtils;
 import com.blankj.utilcode.util.ToastUtils;
 import com.eurigo.websocketlib.DisConnectReason;
 import com.eurigo.websocketlib.IWebSocketListener;
+import com.eurigo.websocketlib.IWebSocketServerListener;
 import com.eurigo.websocketlib.WsClient;
 import com.eurigo.websocketlib.WsManager;
-import com.eurigo.websocketlib.util.WsLogUtil;
 import com.eurigo.websocketutils.databinding.ActivityMainBinding;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ClientHandshake;
-import org.java_websocket.server.WebSocketServer;
 
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 
 /**
@@ -36,8 +33,8 @@ import java.util.ArrayList;
  * Created on 2022/3/28 10:35
  * desc   :
  */
-public class MainActivity extends AppCompatActivity implements View.OnClickListener
-        , IWebSocketListener {
+public class MainActivity extends ComponentActivity implements View.OnClickListener
+        , IWebSocketListener, IWebSocketServerListener {
 
     private LogAdapter mAdapter;
 
@@ -46,7 +43,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String REGEX = "ws:/";
 
     private ActivityMainBinding mBinding;
-    private WebSocketServer webSocketServer;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,8 +52,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(mBinding.getRoot());
         initView();
         ipAddress = NetworkUtils.getIpAddressByWifi();
-        startLocalServer();
-        connectWebSocket("ws://".concat(ipAddress).concat(":" + PORT));
+//        WsManager.getInstance().startWsServer(PORT, this);
+//        connectWebSocket("ws://".concat(ipAddress).concat(":" + PORT));
+        WsManager.getInstance().registerNetworkChangedCallback();
     }
 
     private void initView() {
@@ -70,33 +67,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBinding.btnSend.setOnClickListener(this);
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        new Handler(getMainLooper()).postDelayed(() -> {
-            if (webSocketServer != null) {
-                try {
-                    webSocketServer.stop();
-                } catch (InterruptedException e) {
-                    WsLogUtil.e("onDestroy: " + e);
-                } finally {
-                    webSocketServer = null;
-                }
-            }
-            WsManager.getInstance().destroy();
-        }, 500);
-
-
-    }
-
     @SuppressLint("NonConstantResourceId")
     @Override
     public void onClick(View view) {
         if (view == mBinding.btnConnect) {
-            if (WsManager.getInstance().isReconnectTaskRun()) {
-                ToastUtils.showShort("正在重连，请稍后");
-                return;
-            }
             connectWebSocket(getEditText(mBinding.etAddress));
             return;
         }
@@ -108,6 +82,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String msg = getEditText(mBinding.etMessage);
             if (TextUtils.isEmpty(msg)) {
                 ToastUtils.showShort("请输入消息");
+                return;
+            }
+            if (TextUtils.equals("reset", mBinding.etMessage.getText().toString().trim())) {
+                WsManager.getInstance().resetTaskReconnectCount();
                 return;
             }
             WsManager.getInstance().send(getEditText(mBinding.etMessage));
@@ -140,41 +118,62 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .init(wsClient)
                 .closeLog(false)
                 .start();
+        // 启动3分钟的重连保护
+        WsManager.getInstance().startGuardianTaskInterval(60*3);
+
+        WsManager.getInstance().startWsServer(8800, new IWebSocketServerListener() {
+            @Override
+            public void onWsOpen(WebSocket conn, ClientHandshake handshake) {
+
+            }
+
+            @Override
+            public void onWsClose(WebSocket conn, int code, String reason, boolean remote) {
+
+            }
+
+            @Override
+            public void onWsMessage(WebSocket conn, String message) {
+
+            }
+
+            @Override
+            public void onWsError(WebSocket conn, Exception ex) {
+
+            }
+
+            @Override
+            public void onWsStart() {
+
+            }
+        });
     }
 
-    /**
-     * 开启本地WebSocket服务
-     */
-    private void startLocalServer() {
-        webSocketServer = new WebSocketServer(new InetSocketAddress(PORT)) {
-            @Override
-            public void onOpen(WebSocket conn, ClientHandshake handshake) {
-                LogUtils.e("服务端日志", this.getLocalSocketAddress(conn).toString() + "已连接");
-            }
+    @Override
+    public void onWsOpen(WebSocket conn, ClientHandshake handshake) {
+        LogUtils.e("服务端日志", "服务器已启动，地址:" + conn.getLocalSocketAddress().toString());
+    }
 
-            @Override
-            public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-                LogUtils.e("服务端日志", conn + "已关闭"
-                        , new DisConnectReason(code, reason, remote).toString());
-            }
+    @Override
+    public void onWsClose(WebSocket conn, int code, String reason, boolean remote) {
+        LogUtils.e("服务端日志", conn + "已关闭"
+                , new DisConnectReason(code, reason, remote).toString());
+    }
 
-            @Override
-            public void onMessage(WebSocket conn, String message) {
-                runOnUiThread(() -> mAdapter.addDataAndScroll(message, false));
-            }
+    @Override
+    public void onWsMessage(WebSocket conn, String message) {
+        runOnUiThread(() -> mAdapter.addDataAndScroll(message, false));
+    }
 
-            @Override
-            public void onError(WebSocket conn, Exception ex) {
-                LogUtils.e("服务端日志", "异常", ex);
-                runOnUiThread(() -> mAdapter.addDataAndScroll(ex.getMessage(), false));
-            }
+    @Override
+    public void onWsError(WebSocket conn, Exception ex) {
+        LogUtils.e("服务端日志", "异常", ex);
+        runOnUiThread(() -> mAdapter.addDataAndScroll(ex.getMessage(), false));
+    }
 
-            @Override
-            public void onStart() {
-                LogUtils.e("服务端日志", "服务器已启动", "地址：" + ipAddress + ":" + PORT);
-            }
-        };
-        webSocketServer.start();
+    @Override
+    public void onWsStart() {
+        LogUtils.e("服务端日志", "服务器已启动", "地址：" + ipAddress + ":" + PORT);
     }
 
     /**

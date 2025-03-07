@@ -3,9 +3,10 @@
 基于Java-websocket，在Android下的websocket。
 
 * 具有断网重连和自动重连功能。
-
+* 支持设置连接保护
 * 支持管理多个Websocket
 * 支持搭建本地Websocket调试
+* 支持发送ping帧和pong帧
 
 ---
 
@@ -25,7 +26,7 @@ allprojects {
 
 ```java
 dependencies {
-    implementation 'com.github.eurigo:WebsocketUtils:1.1.72'
+    implementation 'com.github.eurigo:WebsocketUtils:1.3.0'
 }
 ```
 
@@ -42,6 +43,9 @@ dependencies {
 	// 构造一个默认WebSocket客户端
 	WsClient wsClient = new WsClient.Builder()
           .setServerUrl(address)
+          .setReconnectInterval(1)
+          .setReconnectCount(10)
+          .setPingInterval(30)
           .setListener(new IWsListener() {
                     @Override
                     public void onConnected(WsClient client) {
@@ -75,6 +79,7 @@ dependencies {
                 })
           .setPingInterval(30)
           .build();
+
 	// 初始化并启动连接
 	WsManager.getInstance()
           .init(wsClient)
@@ -95,30 +100,33 @@ dependencies {
 
 ### WsManager API介绍
 
-| WsManager.getInstance() |               说明                |
-| :---------------------- | :-------------------------------: |
-| isNetworkAvailable()    |           网络是否可用            |
-| closeLog()              |    是否显示内部日志，默认true     |
-| getDefault()            |        获取默认的websocket        |
-| send()                  |   用（指定的）websocket发送消息   |
-| sendPing()              | 用（指定的）websocket发送心跳ping |
-| disconnect()            |    断开（指定的）websocket连接    |
-| destroy()               |       销毁所有websocket资源       |
+| WsManager.getInstance()          |           说明            |
+|:---------------------------------|:-----------------------:|
+| isNetworkAvailable()             |         网络是否可用          |
+| startGuardianTaskInterval()      |      设置保护间隔并启动保护任务      |
+| startWsServer()                  |   启动一个WebSocketServer   |
+| closeLog()                       |     是否显示内部日志，默认true     |
+| getDefault()                     |     获取默认的websocket      |
+| send()                           |   用（指定的）websocket发送消息   |
+| sendPing()                       | 用（指定的）websocket发送心跳ping |
+| disconnect()                     |   断开（指定的）websocket连接    |
+| destroy()                        |     销毁所有websocket资源     |
 
 ### WsClient 属性
 
-| 属性                          |                        说明                         |
-| ----------------------------- | :-------------------------------------------------: |
-| serverUrl（必须）             |                     服务端地址                      |
-| IWsListener（必须）           |                        回调                         |
-| wsKey                         |  初始化时设置的标识，不设置，自动使用默认websocket  |
-| draft                         |               Websocket协议，默认6455               |
-| connectTimeout                |               连接超时时间，默认值：0               |
-| pingInterval                  | 心跳时间，单位秒，默认60。小于等于0，则关闭心跳功能 |
-| reConnectCount                |        重连次数，默认10，大于0才开启重连功能        |
-| isReconnectTaskRun            |                是否正在执行重连任务                 |
-| reConnectWhenNetworkAvailable |         网络可用时是否自动重连，默认值true          |
-| httpHeaders                   |                  要使用的附加标头                   |
+| 属性                            |              说明               |
+|-------------------------------|:-----------------------------:|
+| serverUrl（必须）                 |             服务端地址             |
+| IWebSocketListener（必须）        |              回调               |
+| wsKey                         | 初始化时设置的标识，不设置，自动使用默认websocket |
+| draft                         |      Websocket协议，默认6455       |
+| connectTimeout                |         连接超时时间，默认值：0          |
+| pingInterval                  |  心跳时间，单位秒，默认60。小于等于0，则关闭心跳功能  |
+| reConnectCount                |     重连次数，默认10，大于0才开启重连功能      |
+| reconnectInterval             |     自动重连间隔, 单位毫秒，默认值1000      |
+| isReconnectTaskRun            |          是否正在执行重连任务           |
+| reConnectWhenNetworkAvailable |      网络可用时是否自动重连，默认值true      |
+| httpHeaders                   |           要使用的附加标头            |
 
 ### 更多
 

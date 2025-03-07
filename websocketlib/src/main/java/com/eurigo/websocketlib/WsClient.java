@@ -19,6 +19,7 @@ import java.util.Map;
 /**
  * @author Eurigo
  * Created on 2022/3/29 17:14
+ * Update on 2025/3/6
  * desc   : WebSocket客户端
  */
 public class WsClient extends WebSocketClient {
@@ -48,7 +49,7 @@ public class WsClient extends WebSocketClient {
     /**
      * WebSocket回调
      */
-    private IWebSocketListener listener;
+    private final IWebSocketListener listener;
 
     /**
      * 服务端地址
@@ -63,7 +64,7 @@ public class WsClient extends WebSocketClient {
     /**
      * 连接超时时间，默认值：0
      */
-    private int connectTimeout;
+    private final int connectTimeout;
 
     /**
      * 初始化时设置的标识，不设置，自动使用默认WebSocket
@@ -96,8 +97,17 @@ public class WsClient extends WebSocketClient {
         return task;
     }
 
-    public void runReconnectTask(){
-        task = new ReconnectTask(this);
+    public synchronized void runReconnectTask() {
+        if (WsManager.getInstance().getTaskReconnectCount() >= reconnectCount) {
+            WsLogUtil.e("已达到最大重连次数，如需重连请调用reset");
+            return;
+        }
+        if (WsManager.getInstance().isReconnectTaskRun()){
+            WsLogUtil.e("重连任务已正在运行");
+            return;
+        }
+        ThreadUtils.cancel(task);
+        task = new ReconnectTask(wsKey);
         task.execute();
     }
 
@@ -122,6 +132,10 @@ public class WsClient extends WebSocketClient {
 
     public int getPingInterval() {
         return pingInterval;
+    }
+
+    public int getConnectTimeout() {
+        return connectTimeout;
     }
 
     public int getReconnectCount() {
@@ -166,21 +180,12 @@ public class WsClient extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         listener.onDisconnect(this, new DisConnectReason(code, reason, remote));
-        if (WsManager.getInstance().isReconnectTaskRun()) {
-            WsLogUtil.e("重连任务执行中");
-            return;
-        }
         runReconnectTask();
     }
 
     @Override
     public void onError(Exception ex) {
         listener.onError(this, ex);
-        if (WsManager.getInstance().isReconnectTaskRun()) {
-            WsLogUtil.e("重连任务执行中");
-            return;
-        }
-        runReconnectTask();
     }
 
     @Override
@@ -192,6 +197,11 @@ public class WsClient extends WebSocketClient {
     @Override
     public void onWebsocketPong(WebSocket conn, Framedata frameData) {
         listener.onPong(this, frameData);
+    }
+
+    @Override
+    public Draft getDraft() {
+        return draft;
     }
 
     public static final class Builder {
@@ -239,7 +249,6 @@ public class WsClient extends WebSocketClient {
         public Builder setConnectTimeout(int connectTimeout) {
             this.connectTimeout = connectTimeout;
             return this;
-
         }
 
         public Builder setPingInterval(int pingInterval) {
